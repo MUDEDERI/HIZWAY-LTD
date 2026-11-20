@@ -15,6 +15,36 @@ const n=x=>Number.isFinite(Number(x))?Number(x):0;
 async function api(r,e){
  let u=new URL(r.url),p=u.pathname,m=r.method,b;
  if(p==="/api/health")return j({ok:true});
+
+if(p==="/api/setup/admin"&&m==="POST"){
+ b=await read(r);
+ if(!e.ADMIN_SETUP_SECRET||String(b.setupSecret||"")!==e.ADMIN_SETUP_SECRET)
+   return err("Invalid setup secret.",403);
+
+ let name=String(b.name||"").trim();
+ let email=String(b.email||"").trim().toLowerCase();
+ let pw=String(b.password||"");
+
+ if(name.length<2||!email.includes("@")||pw.length<8)
+   return err("Enter a valid name, email and password of at least 8 characters.");
+
+ let passwordHash=await hash(pw);
+
+ try{
+   let q=await e.DB.prepare(
+     "INSERT INTO users(name,email,phone,password_hash,role) SELECT ?,?,?,?,'admin' WHERE NOT EXISTS (SELECT 1 FROM users)"
+   ).bind(name,email,String(b.phone||""),passwordHash).run();
+
+   if(!q.meta.changes)
+     return err("Administrator setup is closed. An account already exists.",409);
+
+   let user={id:q.meta.last_row_id,name,email,role:"admin"};
+   return j({user},201,{"set-cookie":ck(await session(user,e))});
+ }catch{
+   return err("Could not create administrator. Check the email and database.",400);
+ }
+}
+
  if(p==="/api/auth/register"&&m==="POST"){b=await read(r);let name=String(b.name||"").trim(),email=String(b.email||"").trim().toLowerCase(),pw=String(b.password||"");if(name.length<2||!email.includes("@")||pw.length<8)return err("Enter your name, valid email and password of at least 8 characters.");try{let q=await e.DB.prepare("INSERT INTO users(name,email,phone,password_hash) VALUES(?,?,?,?)").bind(name,email,b.phone||"",await hash(pw)).run(),user={id:q.meta.last_row_id,name,email};return j({user},201,{"set-cookie":ck(await session(user,e))})}catch{return err("Email already registered.",409)}}
  if(p==="/api/auth/login"&&m==="POST"){b=await read(r);let x=await e.DB.prepare("SELECT * FROM users WHERE email=?").bind(String(b.email||"").toLowerCase()).first();if(!x)return err("Incorrect email or password.",401);let [salt]=x.password_hash.split("."),v=await hash(String(b.password||""),salt);if(v!==x.password_hash)return err("Incorrect email or password.",401);let user={id:x.id,name:x.name,email:x.email};return j({user},200,{"set-cookie":ck(await session(user,e))})}
  if(p==="/api/auth/logout")return j({ok:true},200,{"set-cookie":ck("")});
