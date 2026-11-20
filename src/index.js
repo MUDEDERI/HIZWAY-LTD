@@ -96,7 +96,12 @@ async function api(request,env) {
   let body;
 
   if(path==="/api/health")
-    return json({ok:true,service:"Hizway API"});
+  return json({
+    ok:true,
+    service:"Hizway API",
+    sessionConfigured:Boolean(env.SESSION_SECRET),
+    databaseConfigured:Boolean(env.DB)
+  });
 
   // ONE-TIME FIRST ADMINISTRATOR SETUP
   if(path==="/api/setup/admin"&&method==="POST") {
