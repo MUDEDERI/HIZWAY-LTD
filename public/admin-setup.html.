@@ -1,0 +1,232 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#087443">
+  <title>Hizway Investment Ltd | Admin Setup</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background: #087443;
+      min-height: 100vh;
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 430px;
+      background: #ffffff;
+      padding: 32px 26px;
+      border-radius: 14px;
+      box-shadow: 0 10px 35px rgba(0,0,0,0.18);
+    }
+
+    .logo {
+      text-align: center;
+      margin-bottom: 22px;
+    }
+
+    .logo h1 {
+      color: #087443;
+      margin: 0;
+      font-size: 25px;
+    }
+
+    .logo p {
+      color: #777;
+      font-size: 13px;
+      margin-top: 7px;
+    }
+
+    h2 {
+      color: #183b2b;
+      text-align: center;
+      font-size: 21px;
+      margin-bottom: 8px;
+    }
+
+    .description {
+      text-align: center;
+      color: #777;
+      font-size: 14px;
+      margin-bottom: 24px;
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: bold;
+      color: #333;
+      margin-top: 13px;
+    }
+
+    input {
+      width: 100%;
+      padding: 13px;
+      margin-top: 7px;
+      border: 1px solid #d5ddd8;
+      border-radius: 7px;
+      font-size: 14px;
+      outline: none;
+    }
+
+    input:focus {
+      border-color: #087443;
+      box-shadow: 0 0 0 2px rgba(8,116,67,0.12);
+    }
+
+    button {
+      width: 100%;
+      padding: 14px;
+      margin-top: 22px;
+      border: none;
+      border-radius: 7px;
+      background: #087443;
+      color: white;
+      font-size: 15px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #065c35;
+    }
+
+    button:disabled {
+      opacity: 0.65;
+      cursor: not-allowed;
+    }
+
+    #message {
+      text-align: center;
+      font-size: 14px;
+      margin-top: 18px;
+      overflow-wrap: anywhere;
+    }
+
+    .footer {
+      text-align: center;
+      color: #777;
+      font-size: 12px;
+      margin-top: 24px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <main class="container">
+
+    <div class="logo">
+      <h1>HIZWAY</h1>
+      <p>INVESTMENT LTD</p>
+    </div>
+
+    <h2>Administrator Setup</h2>
+
+    <p class="description">
+      Create your first administrator account.
+    </p>
+
+    <form id="setupForm">
+
+      <label for="name">Full Name</label>
+      <input id="name" name="name"
+        type="text" placeholder="Enter full name" required>
+
+      <label for="email">Email Address</label>
+      <input id="email" name="email"
+        type="email" placeholder="Enter email address" required>
+
+      <label for="phone">Phone Number</label>
+      <input id="phone" name="phone"
+        type="tel" placeholder="Enter phone number">
+
+      <label for="password">Password</label>
+      <input id="password" name="password"
+        type="password" minlength="12"
+        placeholder="Minimum 12 characters" required>
+
+      <label for="setupSecret">Admin Setup Secret</label>
+      <input id="setupSecret" name="setupSecret"
+        type="password" placeholder="Enter setup secret" required>
+
+      <button id="submitButton" type="submit">
+        Create Administrator
+      </button>
+
+    </form>
+
+    <p id="message" role="status"></p>
+
+    <div class="footer">
+      © 2026 Hizway Investment Ltd. All rights reserved.
+    </div>
+
+  </main>
+
+  <script>
+    const form = document.getElementById("setupForm");
+    const message = document.getElementById("message");
+    const button = document.getElementById("submitButton");
+
+    form.addEventListener("submit", async function(event) {
+      event.preventDefault();
+
+      const data = new FormData(form);
+
+      button.disabled = true;
+      button.textContent = "Creating account...";
+      message.textContent = "";
+
+      try {
+        const response = await fetch("/api/setup/admin", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            name: data.get("name"),
+            email: data.get("email"),
+            phone: data.get("phone"),
+            password: data.get("password"),
+            setupSecret: data.get("setupSecret")
+          })
+        });
+
+        const result = await response.json();
+
+        message.textContent =
+          result.message || result.error ||
+          (response.ok ? "Administrator created." : "Setup failed.");
+
+        message.style.color = response.ok ? "#087443" : "#c62828";
+
+        if (response.ok) {
+          form.reset();
+        }
+
+      } catch (error) {
+        message.textContent = "Unable to connect to the server.";
+        message.style.color = "#c62828";
+
+      } finally {
+        button.disabled = false;
+        button.textContent = "Create Administrator";
+      }
+    });
+  </script>
+
+</body>
+</html>
