@@ -1,5 +1,6 @@
+
 {
-  "name": "hizway-rentals",
+  "name": "hizway-ltd",
   "main": "src/index.js",
   "compatibility_date": "2026-11-19",
   "assets": {
@@ -13,7 +14,7 @@
     {
       "binding": "DB",
       "database_name": "hizway-rentals-db",
-      "database_id": "9a14a025-1065-45c6-957e-5f0b077e4452"
+      "database_id": "9a14a025-1065-45c6-957e-5f0b077e4452",
       "migrations_dir": "migrations"
     }
   ]
